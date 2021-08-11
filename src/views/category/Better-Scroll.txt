@@ -1,0 +1,71 @@
+1.引入bscroll文件/安装better-scroll/import导入
+2.创建BScroll对象
+	const bscroll = new BScroll(
+	//第一个参数,需要管理/滚动的url
+	document.querySelector(''),//该元素必须有确定的高度
+	//第二个参数,其他额外属性
+	{
+		probeType: 3  实时监听
+		click: true  内部点击
+		pullUpLoad: true  上拉加载更多
+	})
+	默认情况下BScroll是不可以实时的监听滚动位置
+	probe 侦测
+	0,1 不侦测
+	2 : 在滚动过程中侦测,手指离开后的惯性滚动过程不侦测
+	3 : 只要是滚动, 都侦测
+
+3.bscroll.on('scroll',(position) => {
+	实时监听滚动位置
+})
+
+4.bscroll.on('pullingUp',() => {
+	console.log('上拉加载更多...')
+	//发送网络请求,请求更多页的数据
+	//等数据请求完成,并且将新的数据展示出来后
+	setTimeout(() => {
+		bscroll.finishPullUp()
+	},2000)
+})
+
+5.在图片加载完成之后,父组件里实时更新scroll值
+this.$refs.scroll.scroll.refresh()
+
+如何监听图片加载完成? 原生img.onload = function(){}
+vue里直接使用@load='imageload'
+
+1.使用vuex给store添加一个状态属性保存加载完成状态.管理状态
+2.使用事件总线,管理事件
+
+
+事件总线,在main.js中给Vue原型添加属性
+Vue.prototype.$bus = new Vue
+
+img发送请求
+this.$bus.$emit('imageload')
+home接收请求
+this.$bus.$on('imageload',() => {
+	this.$refs.scroll.scroll.refresh()
+})
+
+1.先判断this.scroll加载是否完成再进行操作
+2.加载回调函数一般写在mounted里 
+
+refresh()函数加载次数过多,对服务器压力过大
+*(疑问:这里难道不能将@load绑定给scroll组件吗?当组件加载完成再一次性更新refresh())
+
+这里使用'防抖函数'/'节流函数'
+debounce防抖函数/节流函数throttle
+
+debounce(func, delay延迟){
+	let timer = null	
+	return function(...args) {
+		//...args多个参数
+		if(timer)clearTimeout(timer)		
+		timer = setTimeout(() => {
+			func.apply(this, args)
+		}, delay)
+	}
+}
+offsetTop值固定tab栏
+每个组件都有一个$el方法
